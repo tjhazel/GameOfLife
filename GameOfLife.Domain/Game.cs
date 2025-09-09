@@ -67,7 +67,7 @@ public class Game(ILogger<Game> logger,
    {
       var boardState = await _boardStateService.Get(gameId);
 
-      if (boardState?.StartActiveCellCount == 0)
+      if (boardState.StartActiveCellCount == 0)
       {
          _logger.LogDebug($"GameId {gameId} has no active cells");
          throw new ArgumentException($"GameId {gameId} has no active cells.", nameof(gameId));
@@ -79,13 +79,80 @@ public class Game(ILogger<Game> logger,
       return await _boardStateService.ConvertToBoardStateRequest(nextBoardState);
    }
 
-   public async Task<BoardStateRequest> GetBoardStateAtTick(string instance, string gameId, int requestedTick)
+   public async Task<BoardStateRequest> ResetGame(string gameId)
    {
-      return await Task.FromResult(default(BoardStateRequest));
+      var boardState = await _boardStateService.GetOriginal(gameId);
+      return await _boardStateService.ConvertToBoardStateRequest(boardState);
    }
 
-   public async Task<BoardStateRequest> GetFinalState(string instance, string gameId)
+   public async Task<BoardStateRequest> GetBoardStateAtTick(string gameId, int tick)
    {
-      return await Task.FromResult(default(BoardStateRequest));
+      var boardState = await _boardStateService.GetOriginal(gameId);
+
+      if (boardState.StartActiveCellCount == 0)
+      {
+         _logger.LogDebug($"GameId {gameId} has no active cells");
+         throw new ArgumentException($"GameId {gameId} has no active cells.", nameof(gameId));
+      }
+
+      do
+      {
+         try
+         {
+            boardState = await _gridService.GetNextBoardState(boardState);
+         }
+         catch (Exception ex)
+         {
+            _logger.LogError(ex, $"GameId {gameId} failed to move to tick {tick}");
+            break;
+         }
+      } while (boardState.Tick < tick || boardState.FinishActiveCellCount == 0);
+
+      var cacheLocation = await _boardStateService.Save(boardState);
+
+      return await _boardStateService.ConvertToBoardStateRequest(boardState);
+   }
+
+   public async Task<BoardStateRequest> GetFinalState(string gameId)
+   {
+      var boardState = await _boardStateService.Get(gameId);
+
+      if (boardState.StartActiveCellCount == 0)
+      {
+         _logger.LogDebug($"GameId {gameId} has no active cells");
+         throw new ArgumentException($"GameId {gameId} has no active cells.", nameof(gameId));
+      }
+
+      const int maxTicks = 100;
+      BoardState nextBoardState = boardState;
+      do
+      {
+         try
+         {
+            nextBoardState = await _gridService.GetNextBoardState(nextBoardState);
+         }
+         catch (Exception ex)
+         {
+            _logger.LogError(ex, $"GameId {gameId} failed to move to next tick {nextBoardState.Tick+1}");
+            break;
+         }
+         
+         if (nextBoardState.Tick >= maxTicks)
+         {
+            _logger.LogInformation($"GameId {gameId} hit the max ticks limit of {maxTicks}");
+            break;
+         }
+
+         if (nextBoardState.FinishActiveCellCount == 0)
+         {
+            _logger.LogInformation($"GameId {gameId} completed at {nextBoardState.Tick} ticks");
+            break;
+         }
+
+      } while (nextBoardState.FinishActiveCellCount > 0);
+
+      var cacheLocation = await _boardStateService.Save(nextBoardState);
+
+      return await _boardStateService.ConvertToBoardStateRequest(nextBoardState);
    }
 }

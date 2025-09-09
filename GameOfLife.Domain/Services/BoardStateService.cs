@@ -54,6 +54,18 @@ public class BoardStateService(ILogger<BoardStateService> logger) : IBoardStateS
    }
 
    /// <summary>
+   /// This will get the original saved request as an actionable board
+   /// </summary>
+   /// <param name="gameId"></param>
+   /// <returns></returns>
+   public async Task<BoardState> GetOriginal(string gameId)
+   {
+      DeleteBoardState(gameId);
+      var request = await GetOriginalBoardStateRequest(gameId);
+      return await ConvertToBoardState(request);
+   }
+
+   /// <summary>
    /// string here is only because of our localized storage solution - helps us find the file
    /// </summary>
    /// <param name="boardState"></param>
@@ -76,7 +88,7 @@ public class BoardStateService(ILogger<BoardStateService> logger) : IBoardStateS
    async Task<string> SaveBoard(BoardState boardState, string folderName)
    {
       var request = await ConvertToBoardStateRequest(boardState);
-      return await SerializeBoardStateRequest(request, StatefulFolder);
+      return await SerializeBoardStateRequest(request, folderName);
    }
 
    /// <summary>
@@ -254,6 +266,28 @@ public class BoardStateService(ILogger<BoardStateService> logger) : IBoardStateS
       {
          _logger.LogError(ex, $"Failed to deserialzie state from {foundFilePath}");
          throw;
+      }
+   }
+   void DeleteBoardState(string gameId)
+   {
+      var safeFileName = ReplaceInvalidFileNameChars(gameId);
+      var targetFolderPath = GetContentFolder(StatefulFolder);
+
+      var targetFilePath = Path.Combine(targetFolderPath, $"{safeFileName}");
+
+      //could be a race, so send a debug message and try to delete
+      if (!File.Exists(targetFilePath))
+      {
+         _logger.LogDebug($"####  GameId: {safeFileName} - no state file found.");
+      }
+
+      try
+      {
+         File.Delete(targetFilePath);
+      }
+      catch (Exception ex)
+      {
+         _logger.LogError(ex, $"Failed to delete state file {targetFilePath}");
       }
    }
 

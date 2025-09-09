@@ -12,10 +12,7 @@ public class GridService(ILogger<GridService> logger,
 
    public async Task<BoardState> GetNextBoardState(BoardState boardState)
    {
-      //TODO: fix the copy bool[,] not implemented for json serialization
-      // var nextBoardState = await _boardStateService.Copy(boardState);
-      //TODO: based on how we are updating, no need to copy.
-      var nextBoardState = boardState;
+      BoardState nextBoardState = boardState.Clone();
 
       //be a great use of a producer \ consumer pattern here
       Cell[] cellsToProcess = new Cell[boardState.TotalCellCount];
@@ -70,7 +67,8 @@ public class GridService(ILogger<GridService> logger,
          }
       });
 
-      boardState.FinishActiveCellCount = activeCellCount;
+      //set finished active cell count
+      nextBoardState.FinishActiveCellCount = activeCellCount;
 
       //increment the Tick
       nextBoardState.Tick++;
