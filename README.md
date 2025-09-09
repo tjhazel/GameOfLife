@@ -1,57 +1,138 @@
-<div align="center"><strong>Conway's Game of Life</strong></div>
-<div align="center">A take on how to implement the game.</div>
-<br />
-<div align="center">
-<a href="https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life">Wiki</a>
-<span> · </span>
-<a href="https://conwaylife.com/wiki/Pattern_of_the_Year">Pattern of the Year</a>
-<span>
-</div>
+# Game of Life API
 
-## Overview
+A C# .NET 8.0 implementation of Conway's Game of Life with REST API endpoints for managing board states and simulating game progression.
 
-###Functional Requirements
+## Functional Requirements
 
-Requirements are to build this using c# net8.0.
+The API provides the following core endpoints:
 
-The API should include (at a minimum) the following endpoints:
-- UploadBoardState - Upload Bulk Board State - used file system :(
-- GetNextBoardState - Get Next State - interate one step at a time
-- GetBoardStateAtTick - Get N States Ahead - will restart from original
-- GetFinalState - Get Final State - will restart from original
+- **UploadBoardState** - Upload initial board state (uses file system storage)
+- **GetNextBoardState** - Calculate and return the next iteration of the game
+- **GetBoardStateAtTick** - Get the board state at a specific tick (restarts from original)
+- **GetFinalState** - Calculate and return the final stable state (restarts from original)
 
-###Non-Functional Requirements
-- Persist board states - in lue of documentdb\blob access, saving the board states as json files
-- production-ready - excluding the file based state, should be good to go.
-  - clean, modular, testable -> to a point - it is testable, but not tested -> implementing tests, especailly around the GridService would likely result in refactoring
-  - error & validation -> some basics, but could be cleaned up a bit
-  - c# best practices -> yes (without a 100% confidence level)
+## Non-Functional Requirements
 
-## Getting Started decision points
-- The first decision is really to decide how to structure the grid.  
-  - Top Left Anchor [0,0]: The more common approach seems to start with position 0, 0 in the top left.  This would be easier to implement in a reasonable amount of time.  
-  - Center Anchor [0,0]: Starting with 0, 0 as the center would make it easier to create symmetrical patterns, but may be more difficult to interpret external patterns.
-  - Fixed vs. infinate grid -> this solution uses a fixed grid to stay within the allotted time.
-- Api Request\Response contract
-  - Tried to pull some ideas from the interweb & landed on a clean & easy to work with visual pattern
-  - WebApi really built on top of the full soluion, which would make it easy to add console, function, or other entry points
-  - Wired up swagger to provide an easy f5 experience to test the methods.
-- Managing state
-  - Used local file system to make the solution more portable
-  - To hose in Azure\AWS, a document\blob database would be a clean fit
+### Persistence
+- Board states are persisted as JSON files on the local file system
+- In production, this could easily be replaced with Azure Blob Storage or AWS S3
+
+### Production Readiness
+- Clean, modular, and testable architecture
+- Basic error handling and validation (could be enhanced)
+- Follows C# best practices
+- Ready for deployment (excluding file-based storage)
+
+**Note**: The `GridService` would benefit from additional testing and potential refactoring.
+
+## Architecture Decisions
+
+### Grid Structure
+- **Top-left anchor [0,0]**: Uses the standard approach with position (0,0) at the top-left corner
+- **Fixed grid**: Implements a bounded grid rather than infinite expansion (time constraint decision)
+- Alternative considered: Center anchor [0,0] for symmetrical patterns, but would complicate external pattern interpretation
+
+### API Design
+- Clean, intuitive request/response contracts
+- Web API built on top of domain layer for easy extension (console, functions, etc.)
+- Swagger integration for F5 testing experience
+
+### State Management
+- Local file system for portability and development ease
+- Designed for easy migration to document/blob storage in cloud environments
 
 ## Getting Started
 
-- Clone the repo locally
-- open the solution in visual studio
-- set the GameOfLife.Api project as the startup
-- run in debug mode to launch swagger
-- Use Swagger to call api methods - convience methods make the eval process easier
-  - GetOriginalBoardState - pull original json payload or some of the pre-loaded games
-  - GetCurrentBoardState - pull latest payload that includes latest game state
-  - ResetBoard - reset state on an existing game  
-  - GetGameList - pulls a list of games to interact with
-- Added in WebApi with swagger to expose endpoints
-- Added Unit test project with good intentions, but pulled the plug after swagger was installed
+### Prerequisites
+- .NET 8.0 SDK
+- Visual Studio or Visual Studio Code
 
-You should now be able to access the application at https://localhost:7247/index.html.
+### Setup
+1. Clone the repository locally
+2. Open the solution in Visual Studio
+3. Set `GameOfLife.Api` as the startup project
+4. Run in debug mode to launch Swagger UI
+
+### Usage
+Access the application at `https://localhost:7247/index.html`
+
+Use Swagger to interact with the API:
+- **GetOriginalBoardState** - Retrieve original board state or pre-loaded game examples
+- **GetLatestBoardState** - Get the current state including latest game progression
+- **ResetGame** - Reset a game to its original state
+- **GetGameList** - List all available games
+- **UploadBoardState** - Upload new board configurations
+- **GetNextBoardState** - Progress game by one tick
+- **GetBoardStateAtTick** - Jump to specific game tick
+- **GetFinalState** - Calculate final game state
+
+## 📁 Project Structure
+
+```
+GameOfLife/
+├── GameOfLife.Api/         # REST API & Swagger configuration
+│   ├── Controllers/        # API endpoints
+│   ├── Program.cs          # Application entry point
+│   └── AppBuilder.cs       # abstraction to dry up startup
+├── GameOfLife.Domain/      # Core business logic
+│   ├── Content/            # Domain entities
+│   │   ├── Original/       # stateless json game payloads 
+│   │   └── Stateful/       # stateful json game payloads 
+│   ├── Extensions/         # simple borrowed extension for 2d arrays
+│   ├── Models/             # Domain entities
+│   ├── Services/           # Business services
+│   └── Game.cs             # Main game orchestrator
+└── GameOfLife.Tests/       # Unit tests (stubs implemented)
+    ├── Services/           # Service layer tests
+    ├── Utilities/          # Xunit logger support
+    └── GameTests.cs        # Domain layer tests
+```
+
+## 🧪 Testing
+
+Test stubs are NOT implemented:
+
+```bash
+# Run all tests
+dotnet test
+
+# Run tests excluding ignored stubs
+dotnet test --filter "Category!=Ignore"
+```
+
+**Current Status**: Test stubs with TODO implementations
+- ✅ Test structure and naming conventions
+- ✅ Mock setups and assertions planned  
+- ⚠️ Implementation pending
+
+## 🔄 Game of Life Rules
+
+This implementation follows Conway's standard rules:
+1. **Underpopulation**: Live cell with < 2 neighbors dies
+2. **Survival**: Live cell with 2-3 neighbors survives  
+3. **Overpopulation**: Live cell with > 3 neighbors dies
+4. **Reproduction**: Dead cell with exactly 3 neighbors becomes alive
+
+## 🚧 Future Enhancements
+
+- [ ] Replace file system with cloud blob storage
+- [ ] Implement comprehensive unit tests
+- [ ] Add integration tests
+- [ ] Enhanced error handling and validation
+- [ ] GridService refactoring based on test findings
+- [ ] Infinite grid support
+- [ ] Performance optimizations for large grids
+- [ ] Real-time game progression via SignalR
+- [ ] Pattern library and templates
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
