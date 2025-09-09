@@ -7,7 +7,34 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Content\Original\3-rows-o.json" />
+    <None Remove="Content\Original\34p7onrattlesnake.cells.json" />
+    <None Remove="Content\Original\nothing.json" />
+    <None Remove="Content\Original\repeat.json" />
+    <None Remove="Content\Original\row-of-o.json" />
+    <None Remove="Content\Original\stable.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Content\Original\3-rows-o.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\Original\34p7onrattlesnake.cells.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\Original\nothing.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\Original\repeat.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\Original\row-of-o.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="Content\Original\smallspacefiller.cells.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\Original\stable.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

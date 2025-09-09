@@ -28,7 +28,7 @@ public class Game(ILogger<Game> logger,
 
       //convert to a board state to make sure we don't save garbage
       var boardState = await _boardStateService.ConvertToBoardState(request);
-      
+
       //this will convert back to request and save
       var cacheLocation = await _boardStateService.SaveOriginal(boardState);
 
@@ -134,10 +134,10 @@ public class Game(ILogger<Game> logger,
          }
          catch (Exception ex)
          {
-            _logger.LogError(ex, $"GameId {gameId} failed to move to next tick {nextBoardState.Tick+1}");
+            _logger.LogError(ex, $"GameId {gameId} failed to move to next tick {nextBoardState.Tick + 1}");
             break;
          }
-         
+
          if (nextBoardState.Tick >= maxTicks)
          {
             _logger.LogInformation($"GameId {gameId} hit the max ticks limit of {maxTicks}");

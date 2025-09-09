@@ -16,6 +16,26 @@ public class GameController(Game game) : Controller
       return await _game.UploadBoardState(request);
    }
 
+   [HttpPatch, Route("[action]/{gameId}")]
+   public Task<BoardStateRequest> GetNextBoardState(string gameId)
+   {
+      return _game.GetNextBoardState(gameId);
+   }
+
+   [HttpPatch, Route("[action]/{gameId}/{tick}")]
+   public Task<BoardStateRequest> GetBoardStateAtTick(string gameId, int tick)
+   {
+      return _game.GetBoardStateAtTick(gameId, tick);
+   }
+
+   [HttpPatch, Route("[action]/{gameId}")]
+   public Task<BoardStateRequest> GetFinalState(string gameId)
+   {
+      return _game.GetFinalState(gameId);
+   }
+
+   #region convience methods
+
    [HttpGet, Route("[action]/{gameId}")]
    public Task<BoardStateRequest> GetOriginalBoardState(string gameId)
    {
@@ -34,21 +54,11 @@ public class GameController(Game game) : Controller
       return _game.ResetGame(gameId);
    }
 
-   [HttpPatch, Route("[action]/{gameId}")]
-   public Task<BoardStateRequest> GetNextBoardState(string gameId)
+   [HttpGet, Route("[action]")]
+   public Task<string[]> GetGameList()
    {
-      return _game.GetNextBoardState(gameId);
+      return _game.GetGameList();
    }
 
-   [HttpPatch, Route("[action]/{gameId}/{tick}")]
-   public Task<BoardStateRequest> GetNextBoardState(string gameId, int tick)
-   {
-      return _game.GetBoardStateAtTick(gameId, tick);
-   }
-
-   [HttpPatch, Route("[action]/{gameId}")]
-   public Task<BoardStateRequest> GetFinalState(string gameId)
-   {
-      return _game.GetFinalState(gameId);
-   }
+   #endregion convience methods
 }
