@@ -107,7 +107,7 @@ public class BoardStateService(ILogger<BoardStateService> logger) : IBoardStateS
       }
 
       List<string> rows = new();
-      for (int rowIdx = 0; rowIdx < boardState.Grid.GetLength(0); rowIdx++)
+      for (int rowIdx = 0; rowIdx < boardState.Grid!.GetLength(0); rowIdx++)
       {
          var row = boardState.Grid.GetRow(rowIdx);
          string rowString = string.Join("", row.Select(y => y == true ? "O" : "."));
@@ -276,11 +276,11 @@ public class BoardStateService(ILogger<BoardStateService> logger) : IBoardStateS
             PropertyNameCaseInsensitive = true
          };
          var request = JsonSerializer.Deserialize<BoardStateRequest>(jsonString, jsonOptions);
-         return await Task.FromResult(request);
+         return await Task.FromResult(request!);
       }
       catch (Exception ex)
       {
-         _logger.LogError(ex, $"Failed to deserialzie state from {foundFilePath}");
+         _logger.LogError(ex, $"Failed to deserialize state from {foundFilePath}");
          throw;
       }
    }

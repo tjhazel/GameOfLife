@@ -66,6 +66,28 @@ Use Swagger to interact with the API:
 - **GetBoardStateAtTick** - Jump to specific game tick
 - **GetFinalState** - Calculate final game state
 
+## 📝 Getting Started with a new Game:
+
+- Select the Swagger POST endpoint **UploadBoardState** 
+- Create or reuse a pattern in the accepted game schema:
+```//sample glider pattern that moves diagonally
+    {
+        "gameId": "glider,
+        "pattern": [
+            "........................................................",
+            "...OOO..................................................",
+            "...O....................................................",
+            "...O....................................................",
+            "....O...................................................",
+            "........................................................",
+            "........................................................"
+        ]
+    }
+- Cell state notation (. for dead, O for live)
+- Game will choose width based on the longest row supplied and fill in the missing spaces to create a grid.
+- Once posted, the game can be viewed and played
+- **GetGameList** will return a list of common and all user loaded games available
+
 ## 📁 Project Structure
 
 ```
@@ -112,6 +134,12 @@ This implementation follows Conway's standard rules:
 2. **Survival**: Live cell with 2-3 neighbors survives  
 3. **Overpopulation**: Live cell with > 3 neighbors dies
 4. **Reproduction**: Dead cell with exactly 3 neighbors becomes alive
+
+### 📚 Learn More About Conway's Game of Life
+
+- **[Cornell University - Game of Life Tutorial](https://pi.math.cornell.edu/~lipa/mec/lesson6.html)** - Mathematical foundations and educational overview
+- **[Wikipedia - Conway's Game of Life](https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life)** - Comprehensive history, rules, and mathematical analysis
+- **[Conway Life Patterns](https://conwaylife.com/patterns)** - Extensive collection of interesting patterns and configurations
 
 ## 🚧 Future Enhancements
 

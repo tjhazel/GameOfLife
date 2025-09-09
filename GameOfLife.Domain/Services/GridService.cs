@@ -13,7 +13,7 @@ public class GridService(ILogger<GridService> logger) : IGridService
       int currentIdx = -1;
       int colCount = nextBoardState.Grid.GetLength(0);
       int rowCount = nextBoardState.Grid.GetLength(1);
-      //used to keep track of active count for after tick is finsished
+      //used to keep track of active count for after tick is finished
       int activeCellCount = 0;
 
       //be a great use of a producer \ consumer pattern here
@@ -29,30 +29,31 @@ public class GridService(ILogger<GridService> logger) : IGridService
          }
       }
 
-      await Parallel.ForEachAsync(cellsToProcess,
+      //not touching any external dependencies, should be efficient in spite of current MaxDegreeOfParallelism
+      Parallel.ForEach(cellsToProcess,
          new ParallelOptions {
             MaxDegreeOfParallelism = Environment.ProcessorCount
-         }, async (cell, cancellationToken) =>
+         }, (cell, cancellationToken) =>
       {
          var livingNeighbors = cell.Neighbors.Count(y => y == true);
 
-         //Any live cell with fewer than two live neighbours dies, as if by underpopulation.
+         //Any live cell with fewer than two live neighbors dies, as if by underpopulation.
          if (cell.IsAlive && livingNeighbors < 2)
          {
             nextBoardState.Grid[cell.X, cell.Y] = false;
          }
-         //Any live cell with two or three live neighbours lives on to the next generation.
+         //Any live cell with two or three live neighbors lives on to the next generation.
          else if (cell.IsAlive && (livingNeighbors == 2 || livingNeighbors == 3))
          {
             nextBoardState.Grid[cell.X, cell.Y] = true;
             Interlocked.Increment(ref activeCellCount);
          }
-         //Any live cell with more than three live neighbours dies, as if by overpopulation.
+         //Any live cell with more than three live neighbors dies, as if by overpopulation.
          else if (cell.IsAlive && livingNeighbors > 3)
          {
             nextBoardState.Grid[cell.X, cell.Y] = false;
          }
-         //Any dead cell with exactly three live neighbours becomes a live cell, as if by reproduction.
+         //Any dead cell with exactly three live neighbors becomes a live cell, as if by reproduction.
          else if (!cell.IsAlive && livingNeighbors == 3)
          {
             nextBoardState.Grid[cell.X, cell.Y] = true;
@@ -71,10 +72,9 @@ public class GridService(ILogger<GridService> logger) : IGridService
       nextBoardState.Tick++;
 
       //this method will create and store a new grid
-      return nextBoardState;
+      return await Task.FromResult(nextBoardState);
    }
 
-   //https://swharden.com/csdv/simulations/life/
    Cell GetNeighbors(int x, int y, int rowCount, int colCount, BoardState boardState)
    {
       var cell = new Cell(x, y, boardState.Grid[x, y]);
