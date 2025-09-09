@@ -38,15 +38,31 @@ public class Game(ILogger<Game> logger,
    }
 
    /// <summary>
-   /// Get an uploaded board. Not part of the requirements, but makes is easier to work with the UploadBoardState Api
+   /// Get original board. Not part of the requirements
    /// </summary>
    /// <param name="gameId"></param>
    /// <returns></returns>
-   public async Task<BoardStateRequest?> GetLatestBoardState(string gameId)
+   public async Task<BoardStateRequest> GetOriginalBoardState(string gameId)
    {
-      return await _boardStateService.GetBoardStateRequest(gameId);
+      return await _boardStateService.GetOriginalBoardStateRequest(gameId);
    }
 
+   /// <summary>
+   /// Get latest board. Not part of the requirements
+   /// </summary>
+   /// <param name="gameId"></param>
+   /// <returns></returns>
+   public async Task<BoardStateRequest> GetLatestBoardState(string gameId)
+   {
+      return await _boardStateService.GetLatestBoardStateRequest(gameId);
+   }
+
+   /// <summary>
+   /// Process the next tick and return results
+   /// </summary>
+   /// <param name="gameId"></param>
+   /// <returns></returns>
+   /// <exception cref="ArgumentException"></exception>
    public async Task<BoardStateRequest> GetNextBoardState(string gameId)
    {
       var boardState = await _boardStateService.Get(gameId);

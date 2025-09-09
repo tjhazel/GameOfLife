@@ -8,5 +8,5 @@ public class BoardState
    public required bool[,] Grid { get; set; }
    public int TotalCellCount => Grid?.GetLength(0) * Grid?.GetLength(1) ?? 0;
    public int StartActiveCellCount { get; set; } = -1;
-   public int FinishActiveCellCount { get; set; } = -1;
+   public int? FinishActiveCellCount { get; set; }
 }

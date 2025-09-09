@@ -3,6 +3,7 @@ using GameOfLife.Domain.Models;
 using Microsoft.Extensions.Logging;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace GameOfLife.Domain.Services;
 
@@ -20,24 +21,33 @@ public class BoardStateService(ILogger<BoardStateService> logger) : IBoardStateS
    const string ContentFolder = "Content";
    const string OriginalFolder = "Original";
    const string StatefulFolder = "Stateful";
-   //const string Completed = "Completed";
 
    /// <summary>
-   /// Get the raw saved request
+   /// Get the latest saved request
    /// </summary>
    /// <param name="gameId"></param>
    /// <returns></returns>
-   public async Task<BoardStateRequest?> GetBoardStateRequest(string gameId)
+   public async Task<BoardStateRequest> GetLatestBoardStateRequest(string gameId)
    {
-      return await GetLatestBoardStateRequest(gameId);
+      return await GetBoardStateRequest(gameId, true);
    }
 
    /// <summary>
-   /// This will get a saved request as an actionable board
+   /// Get the original saved request
    /// </summary>
    /// <param name="gameId"></param>
    /// <returns></returns>
-   public async Task<BoardState?> Get(string gameId)
+   public async Task<BoardStateRequest> GetOriginalBoardStateRequest(string gameId)
+   {
+      return await GetBoardStateRequest(gameId, false);
+   }
+
+   /// <summary>
+   /// This will get the latest saved request as an actionable board
+   /// </summary>
+   /// <param name="gameId"></param>
+   /// <returns></returns>
+   public async Task<BoardState> Get(string gameId)
    {
       var request = await GetLatestBoardStateRequest(gameId);
       return await ConvertToBoardState(request);
@@ -50,9 +60,7 @@ public class BoardStateService(ILogger<BoardStateService> logger) : IBoardStateS
    /// <returns></returns>
    public async Task<string> SaveOriginal(BoardState boardState)
    {
-      var request = await ConvertToBoardStateRequest(boardState);
-
-      return await SerializeBoardStateRequest(request, OriginalFolder);
+      return await SaveBoard(boardState, OriginalFolder);
    }
 
    /// <summary>
@@ -62,8 +70,12 @@ public class BoardStateService(ILogger<BoardStateService> logger) : IBoardStateS
    /// <returns></returns>
    public async Task<string> Save(BoardState boardState)
    {
-      var request = await ConvertToBoardStateRequest(boardState);
+      return await SaveBoard(boardState, StatefulFolder);
+   }
 
+   async Task<string> SaveBoard(BoardState boardState, string folderName)
+   {
+      var request = await ConvertToBoardStateRequest(boardState);
       return await SerializeBoardStateRequest(request, StatefulFolder);
    }
 
@@ -130,11 +142,13 @@ public class BoardStateService(ILogger<BoardStateService> logger) : IBoardStateS
          for (int colIdx = 0; colIdx < maxRowLength; colIdx++)
          {
             bool selected = false;
-            if (colIdx <= colArr.Length)
-            {
+
+            if (colIdx <= colArr.Length) 
                selected = activeBits.Contains(colArr[colIdx]);
+
+            if (selected) 
                Interlocked.Increment(ref activeCellCount);
-            }
+
             rows[lineIdx, colIdx] = selected;
          }
       }
@@ -151,8 +165,7 @@ public class BoardStateService(ILogger<BoardStateService> logger) : IBoardStateS
       return await Task.FromResult(boardState);
    }
 
-
-   //TODO: should move this somewhere behind a moqable interface
+   //TODO: should move File System bits somewhere behind a moqable interface
    async Task<string> SerializeBoardStateRequest(BoardStateRequest request, string targetFolder)
    {
       var safeFileName = ReplaceInvalidFileNameChars(request.GameId);
@@ -169,7 +182,8 @@ public class BoardStateService(ILogger<BoardStateService> logger) : IBoardStateS
       JsonSerializerOptions jsonOptions = new()
       {
          PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-         WriteIndented = true
+         WriteIndented = true,
+         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
       };
       try
       {
@@ -195,52 +209,54 @@ public class BoardStateService(ILogger<BoardStateService> logger) : IBoardStateS
    /// <param name="gameId"></param>
    /// <returns></returns>
    /// <exception cref="ArgumentException"></exception>
-   async Task<BoardStateRequest?> GetLatestBoardStateRequest(string gameId)
+   async Task<BoardStateRequest> GetBoardStateRequest(string gameId, bool latest)
    {
-      BoardStateRequest? request = null;
-
       var safeFileName = ReplaceInvalidFileNameChars(gameId);
-
-      //check root folder for a working state
-      string foundFilePath = GetLocalFolderPath(Path.Combine(GetContentFolder(StatefulFolder), safeFileName));
-
-      //check for an original file
-      if (!File.Exists(foundFilePath))
-         foundFilePath = GetLocalFolderPath(Path.Combine(GetContentFolder(OriginalFolder), safeFileName));
-
-      if (File.Exists(foundFilePath))
+      string? foundFilePath = null;
+      if (latest)
       {
-         string jsonString = File.ReadAllText(foundFilePath);
-         if (!string.IsNullOrWhiteSpace(jsonString))
-         {
-            try
-            {
-               _logger.LogInformation($"####  Loading GameId: {gameId}");
-               _logger.LogInformation(jsonString);
-
-               JsonSerializerOptions jsonOptions = new()
-               {
-                  PropertyNameCaseInsensitive = true
-               };
-               request = JsonSerializer.Deserialize<BoardStateRequest>(jsonString, jsonOptions);
-            }
-            catch (Exception ex)
-            {
-               _logger.LogError(ex, $"Failed to deserialzie state from {foundFilePath}");
-               throw;
-            }
-         }
+         //check root folder for a working state
+         foundFilePath = GetLocalFolderPath(Path.Combine(GetContentFolder(StatefulFolder), safeFileName));
       }
-      else
+
+      if (string.IsNullOrWhiteSpace(foundFilePath) || !File.Exists(foundFilePath))
+      {
+         //check for an original file
+         foundFilePath = GetLocalFolderPath(Path.Combine(GetContentFolder(OriginalFolder), safeFileName));
+      }
+
+      if (!File.Exists(foundFilePath))
       {
          _logger.LogWarning($"Unable to find state at {foundFilePath}");
-         throw new ArgumentException( $"Unable to find state at {foundFilePath}", nameof(gameId));
+         throw new ArgumentException($"Unable to find state at {foundFilePath}", nameof(gameId));
       }
 
-      return await Task.FromResult(request);
+      string jsonString = File.ReadAllText(foundFilePath);
+      if (string.IsNullOrWhiteSpace(jsonString))
+      {
+         _logger.LogWarning($"Empty file at {foundFilePath}");
+         throw new ArgumentException($"Empty file at {foundFilePath}", nameof(gameId));
+      }
+
+      try
+      {
+         _logger.LogInformation($"####  Loading GameId: {gameId}");
+         _logger.LogInformation(jsonString);
+
+         JsonSerializerOptions jsonOptions = new()
+         {
+            PropertyNameCaseInsensitive = true
+         };
+         var request = JsonSerializer.Deserialize<BoardStateRequest>(jsonString, jsonOptions);
+         return await Task.FromResult(request);
+      }
+      catch (Exception ex)
+      {
+         _logger.LogError(ex, $"Failed to deserialzie state from {foundFilePath}");
+         throw;
+      }
    }
 
-   //TODO: move these to a more suitable home
    static string GetContentFolder(string folderName)
    {
       return Path.Combine(AppDomain.CurrentDomain.BaseDirectory, ContentFolder, folderName);
