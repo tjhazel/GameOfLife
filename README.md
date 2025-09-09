@@ -70,19 +70,21 @@ Use Swagger to interact with the API:
 
 - Select the Swagger POST endpoint **UploadBoardState** 
 - Create or reuse a pattern in the accepted game schema:
-```//sample glider pattern that moves diagonally
-    {
-        "gameId": "glider,
-        "pattern": [
-            "........................................................",
-            "...OOO..................................................",
-            "...O....................................................",
-            "...O....................................................",
-            "....O...................................................",
-            "........................................................",
-            "........................................................"
-        ]
-    }
+//sample glider pattern that moves diagonally
+```
+{
+  "gameId": "glider",
+  "pattern": [
+    "........................................................",
+    "...OOO..................................................",
+    "...O....................................................",
+    "...O....................................................",
+    "....O...................................................",
+    "........................................................",
+    "........................................................"
+  ]
+}
+```
 - Cell state notation (. for dead, O for live)
 - Game will choose width based on the longest row supplied and fill in the missing spaces to create a grid.
 - Once posted, the game can be viewed and played
