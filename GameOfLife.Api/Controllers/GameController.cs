@@ -28,9 +28,27 @@ public class GameController(Game game) : Controller
       return _game.GetLatestBoardState(gameId);
    }
 
+   [HttpDelete, Route("[action]/{gameId}")]
+   public Task<BoardStateRequest> ResetBoard(string gameId)
+   {
+      return _game.ResetGame(gameId);
+   }
+
    [HttpPatch, Route("[action]/{gameId}")]
    public Task<BoardStateRequest> GetNextBoardState(string gameId)
    {
       return _game.GetNextBoardState(gameId);
+   }
+
+   [HttpPatch, Route("[action]/{gameId}/{tick}")]
+   public Task<BoardStateRequest> GetNextBoardState(string gameId, int tick)
+   {
+      return _game.GetBoardStateAtTick(gameId, tick);
+   }
+
+   [HttpPatch, Route("[action]/{gameId}")]
+   public Task<BoardStateRequest> GetFinalState(string gameId)
+   {
+      return _game.GetFinalState(gameId);
    }
 }
