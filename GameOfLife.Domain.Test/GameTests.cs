@@ -11,59 +11,49 @@ public class GameTests(ITestOutputHelper output)
    private readonly ITestOutputHelper _output = output;
 
    [Fact]
-   public void Upload_Board_State_New_Successful()
+   [Trait("Category", "Unit")]
+   public async Task UploadBoardState_Returns_String()
    {
-     // //arrange
-     // Mock<IGridService> mockGridService = new();
-     // XUnitLogger<Game> boardStateServiceLogger = new(_output);
+      //arrange
+      Mock<IGridService> mockGridService = new();
+      Mock<IBoardStateService> mockBoardStateService = new();
+      XUnitLogger<Game> gameLogger = new(_output);
 
-     // BoardState boardState = new()
-     // {
-     //    GameId = $"Test_{DateTime.UtcNow.Ticks}"
-     //    ,Grid = new []
-     //    {
-     //       new Row()
-     //       {
-     //          Cells = new []
-     //          {
-     //             new Cell(false),
-     //             new Cell(false),
-     //             new Cell(true),
-     //             new Cell(true)
-     //          }
-     //       },
-     //       new Row()
-     //       {
-     //          Cells = new []
-     //          {
-     //             new Cell(false),
-     //             new Cell(false),
-     //             new Cell(true),
-     //             new Cell(true)
-     //          }
-     //       }
-     //    }
-     // };
+      var game = new Game(gameLogger, mockBoardStateService.Object, mockGridService.Object);
 
-     // //var game = new Game(mockGameLogger.Object, 
-     // //  mockGridService.Object);
+      BoardStateRequest expectedRequest = new BoardStateRequest()
+      {
+         GameId = "test",
+         Pattern = [".", "0"]
+      };
 
+      //act
+      var actualResult = await game.UploadBoardState(expectedRequest);
 
-     // //action
-     //// var testData = game.UploadBoardState(boardState);
-
-     // //assert
-
+      //assert
+      Assert.Equal(expectedRequest.GameId, actualResult);
    }
 
-   //[Fact]
-   //public void Get_Next_Board_State_New_Successful()
-   //{
-   //   //arrange
-   //   var testData = GetTestData();
+   [Fact]
+   [Trait("Category", "Ignore")]
+   public async Task GetOriginalBoardState_Returns_ReturnsLatestBoardStateRequest()
+   {
+      // TODO: Implement test
+   }
 
-   //   //action
+   [Fact]
+   [Trait("Category", "Ignore")]
+   public async Task GetLatestBoardStateRequest_WithValidGameId_ReturnsLatestBoardStateRequest()
+   {
+      // TODO: Implement test
+   }
 
-   //   //assert
-   //}
+
+   [Fact]
+   [Trait("Category", "Ignore")]
+   public async Task GetOriginalBoardStateRequest_WithValidGameId_ReturnsOriginalBoardStateRequest()
+   {
+      // TODO: Implement test
+   }
+
 }

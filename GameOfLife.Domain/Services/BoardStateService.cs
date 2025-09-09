@@ -17,7 +17,6 @@ public class BoardStateService(ILogger<BoardStateService> logger) : IBoardStateS
    //trying to match existing files from the wild
    static char[] activeBits = { '1', 'X', 'Y', 'O' }; //not 0 
    //using this to help locate the path
-   const string KnownGame = "smallspacefiller.cells";
    const string ContentFolder = "Content";
    const string OriginalFolder = "Original";
    const string StatefulFolder = "Stateful";
@@ -155,7 +154,7 @@ public class BoardStateService(ILogger<BoardStateService> logger) : IBoardStateS
          {
             bool selected = false;
 
-            if (colIdx <= colArr.Length) 
+            if (colIdx < colArr.Length) 
                selected = activeBits.Contains(colArr[colIdx]);
 
             if (selected) 
@@ -176,6 +175,23 @@ public class BoardStateService(ILogger<BoardStateService> logger) : IBoardStateS
 
       return await Task.FromResult(boardState);
    }
+
+   /// <summary>
+   /// pull list of game names based on existing test files
+   /// </summary>
+   /// <returns></returns>
+   public async Task<string[]> GetGameList()
+   {
+      var targetFolderPath = GetContentFolder(OriginalFolder);
+
+      string[] gameIds = Directory.GetFiles(targetFolderPath, "*.json")
+         .Select(y => Path.GetFileNameWithoutExtension(y))
+         .ToArray();
+
+      return await Task.FromResult(gameIds);
+   }
+
+   #region Private Bits
 
    //TODO: should move File System bits somewhere behind a moqable interface
    async Task<string> SerializeBoardStateRequest(BoardStateRequest request, string targetFolder)
@@ -313,4 +329,6 @@ public class BoardStateService(ILogger<BoardStateService> logger) : IBoardStateS
 
       return wipName.EndsWith(".json") ? wipName : $"{wipName}.json";
    }
+
+   #endregion Private Bits
 }

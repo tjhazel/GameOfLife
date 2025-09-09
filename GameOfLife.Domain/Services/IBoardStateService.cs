@@ -12,4 +12,5 @@ public interface IBoardStateService
    Task<BoardState> ConvertToBoardState(BoardStateRequest request);
    Task<string> Save(BoardState boardState);
    Task<string> SaveOriginal(BoardState boardState);
+   Task<string[]> GetGameList();
 }
