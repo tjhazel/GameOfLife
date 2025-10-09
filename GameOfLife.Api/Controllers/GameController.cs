@@ -17,47 +17,47 @@ public class GameController(Game game) : Controller
    }
 
    [HttpPatch, Route("[action]/{gameId}")]
-   public Task<BoardStateRequest> GetNextBoardState(string gameId)
+   public async Task<BoardStateRequest> GetNextBoardState(string gameId)
    {
-      return _game.GetNextBoardState(gameId);
+      return await _game.GetNextBoardState(gameId);
    }
 
    [HttpPatch, Route("[action]/{gameId}/{tick}")]
-   public Task<BoardStateRequest> GetBoardStateAtTick(string gameId, int tick)
+   public async Task<BoardStateRequest> GetBoardStateAtTick(string gameId, int tick)
    {
-      return _game.GetBoardStateAtTick(gameId, tick);
+      return await _game.GetBoardStateAtTick(gameId, tick);
    }
 
    [HttpPatch, Route("[action]/{gameId}")]
-   public Task<BoardStateRequest> GetFinalState(string gameId)
+   public async Task<BoardStateRequest> GetFinalState(string gameId)
    {
-      return _game.GetFinalState(gameId);
+      return await _game.GetFinalState(gameId);
    }
 
    #region convience methods
 
    [HttpGet, Route("[action]/{gameId}")]
-   public Task<BoardStateRequest> GetOriginalBoardState(string gameId)
+   public async Task<BoardStateRequest> GetOriginalBoardState(string gameId)
    {
-      return _game.GetOriginalBoardState(gameId);
+      return await _game.GetOriginalBoardState(gameId);
    }
 
    [HttpGet, Route("[action]/{gameId}")]
-   public Task<BoardStateRequest> GetCurrentBoardState(string gameId)
+   public async Task<BoardStateRequest> GetCurrentBoardState(string gameId)
    {
-      return _game.GetLatestBoardState(gameId);
+      return await _game.GetLatestBoardState(gameId);
    }
 
    [HttpDelete, Route("[action]/{gameId}")]
-   public Task<BoardStateRequest> ResetBoard(string gameId)
+   public async Task<BoardStateRequest> ResetBoard(string gameId)
    {
-      return _game.ResetGame(gameId);
+      return await _game.ResetGame(gameId);
    }
 
    [HttpGet, Route("[action]")]
-   public Task<string[]> GetGameList()
+   public async Task<string[]> GetGameList()
    {
-      return _game.GetGameList();
+      return await _game.GetGameList();
    }
 
    #endregion convience methods
