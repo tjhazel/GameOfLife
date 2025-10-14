@@ -1,7 +1,6 @@
 ﻿using GameOfLife.Domain;
 using GameOfLife.Domain.Services;
 using Microsoft.OpenApi.Models;
-using System.Reflection;
 using System.Text.Json.Serialization;
 
 namespace GameOfLife.Api;
